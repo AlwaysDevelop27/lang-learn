@@ -8,6 +8,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +17,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration //Lets SB know this is a config file and needs to be added to the bean context
 @EnableWebSecurity //Lets SB know this is where we add our Security Configs
-public class SecurityConfig {
+public class SecurityConfig{
+	
+	public static final String[] ENDPOINTS_WHITELIST = {
+			"/api/auth/**",
+			"/languagelearning",
+            "/api/user/signup",
+            "/v3/api-docs.yaml",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui/index.html"
+    };
 
     private JwtAuthEntryPoint jwtAuthEntryPoint;
     private CustomerUserDetailsService userDetailsService;
@@ -33,9 +44,9 @@ public class SecurityConfig {
                 .exceptionHandling((exception) -> exception.authenticationEntryPoint(jwtAuthEntryPoint))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() //Can check for Roles here
-                        .anyRequest().authenticated()
-                )
+                        //.requestMatchers("/api/auth/**").permitAll() //Can check for Roles here
+                        .requestMatchers(ENDPOINTS_WHITELIST).permitAll()
+                        .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
                 .addFilterBefore(jwtAutheticationFIlter(), UsernamePasswordAuthenticationFilter.class)
@@ -56,6 +67,8 @@ public class SecurityConfig {
 //                .build();
 //        return new InMemoryUserDetailsManager(admin,user);
 //    }
+    
+    
 
     @Bean
     public AuthenticationManager authenticationManager(
